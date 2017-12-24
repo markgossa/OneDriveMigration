@@ -82,7 +82,7 @@ function Copy-OneDriveFolder
         $LogFolderPath
     )
     $LogFolderPath = "$(Join-Path $LogFolderPath (Split-Path $Source -Leaf)).log"
-    robocopy $Source $Destination /E /W:2 /R:10 /log+:$LogFolderPath /tee /XO /MT:32 /V
+    robocopy $Source $Destination /E /W:2 /R:10 /log+:$LogFolderPath /tee /XO /V
 }
 
     function Get-InvalidItems
