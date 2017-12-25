@@ -68,22 +68,22 @@ function Copy-OneDriveFolder
     }
 
     function CopyTo-OneDrive
-{
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [string]
-        $Source,
-        [Parameter(Mandatory = $true)]
-        [string]
-        $Destination,
-        [Parameter(Mandatory = $true)]
-        [string]
-        $LogFolderPath
-    )
-    $LogFolderPath = "$(Join-Path $LogFolderPath (Split-Path $Source -Leaf)).log"
-    robocopy $Source $Destination /E /W:2 /R:10 /log+:$LogFolderPath /tee /XO /V
-}
+    {
+        param
+        (
+            [Parameter(Mandatory = $true)]
+            [string]
+            $Source,
+            [Parameter(Mandatory = $true)]
+            [string]
+            $Destination,
+            [Parameter(Mandatory = $true)]
+            [string]
+            $LogFolderPath
+        )
+        $LogFolderPath = "$(Join-Path $LogFolderPath (Split-Path $Source -Leaf)).log"
+        robocopy $Source $Destination /E /W:2 /R:10 /log+:$LogFolderPath /tee /XO /V
+    }
 
     function Get-InvalidItems
     {
@@ -97,11 +97,11 @@ function Copy-OneDriveFolder
         )
 
         $Output = @()
-        foreach ($Item in (Get-ChildItem -Path $Path -Recurse))
+        foreach ($Item in (Get-ChildItem -Path $Path -Recurse -Force))
         {
             foreach ($InvalidName in $InvalidNames)
             {
-                if ($Item.BaseName -contains $InvalidName)
+                if ($Item.BaseName -match $InvalidName)
                 {
                     $Output += $Item
                 }
