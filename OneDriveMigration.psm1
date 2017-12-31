@@ -21,13 +21,18 @@ function Copy-OneDriveFolder
     .PARAMETER LogFolderPath
 
     Folder path where logs will be saved. This includes copy logs and rename logs. Rename logs will be in CSV format so can be searched at a later date if needed.
+
+    .PARAMETER NoCopy
+
+    Processes files in a destination folder only. Does not copy files from the source folder to the destination folder.
     
     .EXAMPLE
 
-    Copy-OneDriveFolder -Source "H:\IT" -Destination "C:\Users\joebloggs\OneDrive - Joe Bloggs\IT" -LogPath C:\OneDriveLogs
+    Copy-OneDriveFolder -Source "H:\IT" -Destination "C:\Users\joebloggs\OneDrive - Joe Bloggs\IT" -LogFolderPath C:\OneDriveLogs
     
     #>
 
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
         [String]
@@ -37,12 +42,13 @@ function Copy-OneDriveFolder
         $Destination,
         [Parameter(Mandatory = $true)]
         [String]
-        $LogFolderPath       
+        $LogFolderPath,
+        [Parameter(Mandatory = $false)]
+        [Switch]
+        $NoCopy
     )
 
-    $InvalidNames = "Icon,.lock,PRN,CON,PRN,AUX,NUL,COM1,COM2,COM3,COM4,COM5,COM6,COM7,COM8,COM9," 
-    $InvalidNames += "_t,_w,LPT1,LPT2,LPT3,LPT4,LPT5,LPT6,LPT7,LPT8,LPT9,_vti_"
-    $InvalidNames = $InvalidNames -split ","
+    
 
     function Add-LogEntry
     {
@@ -90,21 +96,20 @@ function Copy-OneDriveFolder
         param (
             [Parameter(Mandatory = $true)]
             [String]
-            $Path,
-            [Parameter(Mandatory = $true)]
-            [array]
-            $InvalidNames
+            $Path
         )
 
+        $InvalidNamesEqual = '.lock,PRN,CON,PRN,AUX,NUL,COM1,COM2,COM3,COM4,COM5,COM6,COM7,COM8,COM9,_vti_,LPT1,LPT2,LPT3,LPT4,LPT5,LPT6,LPT7,LPT8,LPT9,_t,_w' -split ','
+        $InvalidNamesMatch = '_vti_'
+    
         $Output = @()
+        Write-Verbose "Generating a list of files"
         foreach ($Item in (Get-ChildItem -Path $Path -Recurse -Force))
         {
-            foreach ($InvalidName in $InvalidNames)
+            Write-Verbose "Checking $($Item.FullName)"
+            if ($InvalidNamesEqual -eq $Item.BaseName -or $Item.BaseName -match $InvalidNamesMatch)
             {
-                if ($Item.BaseName -match $InvalidName)
-                {
-                    $Output += $Item
-                }
+                $Output += $Item
             }
         }
 
@@ -125,6 +130,7 @@ function Copy-OneDriveFolder
         {
             # For each item, rename it
             $NewName = "RenamedItem$(Get-Random -Minimum 1000000 -Maximum 9999999)$($Items.Extension)"
+            Write-Verbose "Renaming $($Item.FullName) to $($NewName)"
             Rename-Item -Path $Items.FullName -NewName "$($NewName)"
 
             # Write out change to log
@@ -135,9 +141,12 @@ function Copy-OneDriveFolder
     }
 
     # Copy all files and folders over to the destination
-    CopyTo-OneDrive -Source $Source -Destination $Destination -LogFolderPath $LogFolderPath
+    if(!$NoCopy)
+    {
+        CopyTo-OneDrive -Source $Source -Destination $Destination -LogFolderPath $LogFolderPath
+    }
 
     # Get the invalid items in the destination, rename them and write out the changes  to the log file
-    Get-InvalidItems -Path $Destination -InvalidNames $InvalidNames | Rename-InvalidItems
+    Get-InvalidItems -Path $Destination | Rename-InvalidItems
 
 }
