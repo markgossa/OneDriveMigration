@@ -130,7 +130,7 @@ function Copy-OneDriveFolder
         {
             # For each item, rename it
             $NewName = "RenamedItem$(Get-Random -Minimum 1000000 -Maximum 9999999)$($Items.Extension)"
-            Write-Verbose "Renaming $($Item.FullName) to $($NewName)"
+            Write-Verbose "Renaming $($Items.FullName) to $($NewName)"
             Rename-Item -Path $Items.FullName -NewName "$($NewName)"
 
             # Write out change to log
